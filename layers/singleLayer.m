@@ -53,10 +53,16 @@ classdef singleLayer < abstractMeganetElement
             
         end
         function [th1,th2,th3,th4] = split(this,theta)
+            % extract the part of theta corresponding to the entries of K
             th1 = theta(1:nTheta(this.K));
             cnt = numel(th1);
+            % extract the part of theta corresponding to the entries of Bin
+            % which is the usual b displacement
             th2 = theta(cnt+(1:sizeLastDim(this.Bin)));
             cnt = cnt + numel(th2);
+            
+            % extract the part of theta corresponding to the entries of
+            % Bout. What is it ?
             th3 = theta(cnt+(1:sizeLastDim(this.Bout)));
             cnt = cnt + numel(th3);
             th4 = theta(cnt+1:end);
@@ -68,7 +74,7 @@ classdef singleLayer < abstractMeganetElement
                 eval([varargin{k},'=varargin{',int2str(k+1),'};']);
             end
             [th1,th2,th3,th4] = split(this,theta);
-            
+            % compute Y=K*Y 
             Y      =  getOp(this.K,th1)*Y;
             if this.storeInterm
                 KY    = Y;

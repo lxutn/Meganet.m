@@ -9,7 +9,7 @@ classdef dense
     
     properties
         nK
-        Q
+        Q % if defined it is used for computing the vectorized gradient
         q 
         useGPU
         precision
@@ -79,6 +79,7 @@ classdef dense
         end
             
         function A = getOp(this,theta)
+            % Q is used, for instance, for generating A skew symmetric
             if not(isempty(this.Q))
                 theta = this.Q*theta + this.q;
             end
@@ -99,6 +100,7 @@ classdef dense
         
        function dtheta = JthetaTmv(this,Z,~,Y,~)
             % Jacobian transpose matvec.
+            % dtheta = Q'*vec(Z*Y') or simply vec(Z*Y') 
             dtheta   = vec(Z*Y');
             if not(isempty(this.Q))
                 dtheta = this.Q'*dtheta;

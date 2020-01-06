@@ -4,8 +4,11 @@ rng(42);
 [Ytrain,Ctrain] = setupPeaks(1000,5);
 [Yv,Cv] = setupPeaks(1000,5);
 
-% dynamic = 'antiSym-ResNN';
-dynamic = 'ResNN';
+ dynamic = 'antiSym-ResNN';
+% dynamic = 'ResNN';
+% dynamic = 'leapfrog';
+% dynamic = 'hamiltonian';
+
 
 % rng(20); %seed random number generator
 figure(1); clf;

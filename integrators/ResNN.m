@@ -74,6 +74,7 @@ classdef ResNN < abstractMeganetElement
             
             for i=1:this.nt
                 if doDerivative, tmp{i,1} = Y; end
+                % call the method forwardProp defined for a single layer
                 [Z,tmp{i,2}] = forwardProp(this.layer,theta(:,i),Y,'doDerivative',doDerivative);
                 Y =  Y + this.h * Z;
             end

@@ -15,9 +15,10 @@
 clear all; close; 
 
 [Ytrain,Ctrain,Yv,Cv] = setupSwissRoll(256);
-
+Ytrain=Ytrain+0.01*randn(size(Ytrain));
 % increase dimension of feature space
 Ytrain = [Ytrain; zeros(2,size(Ytrain,2))];
+%Ytrain=Ytrain+0.01*randn(size(Ytrain));
 Yv = [Yv; zeros(2,size(Yv,2))];
 
 % since we use the log-regression, we only need the labels for the

@@ -15,7 +15,7 @@
 clear all; close; 
 
 [Ytrain,Ctrain,Yv,Cv] = setupSwissRoll(256);
-
+%Ytrain=Ytrain+0.01*randn(size(Ytrain));
 Ytrain = [Ytrain; zeros(2,size(Ytrain,2))];
 Yv = [Yv; zeros(2,size(Yv,2))];
 
@@ -23,7 +23,8 @@ Ctrain = Ctrain(1,:);
 Cv = Cv(1,:);
 
 minLevel = 4;
-maxLevel = 10;
+maxLevel = 4;
+%maxLevel = 10;
 
 figure(1); clf;
 subplot(2,10,1);
@@ -37,6 +38,7 @@ h  = T/nt;
 nf = size(Ytrain,1);
 
 K     = getDenseAntiSym([nf,nf]);
+% define a single layer Y(th,Y0) = activation( K(th_1)*Y0 + Bin*th_2)+Bout*th_3
 layer = singleLayer(K,'Bin',ones(nf,1));
 net   = ResNN(layer,nt,h);
 
@@ -44,8 +46,10 @@ net   = ResNN(layer,nt,h);
 pLoss = logRegressionLoss();
 %% setup regularizer
 alpha = 5e-4;
+% set the matrix that computes difference of weights across consecutive layers 
 regOp = opTimeDer(nTheta(net),nt,h);
 pRegK = tikhonovReg(regOp,h*alpha,[]);
+% set the identity matrix for minimizing ||W||^2
 regOpW = opEye((prod(sizeFeatOut(net))+1)*size(Ctrain,1));
 pRegW = tikhonovReg(regOpW,1e-3);
 %% setup solver for classification problem
@@ -80,6 +84,7 @@ for level=minLevel:maxLevel
     % plot the results
     [Jc,para] = eval(fctn,theta);
     WOpt = para.W;
+    % propagate the validation datapoints
     [Yn,tmp] = forwardProp(net,theta,Yv);
     figure(1);
     subplot(2,10,level);

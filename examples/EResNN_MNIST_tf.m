@@ -59,6 +59,7 @@ switch dynamic
 end
 RegOps{end+1} = opTimeDer(nTheta(blocks{end}),nt,h,useGPU,precision);
 
+% put all alywers together in a single DNN
 net    = Meganet(blocks,'useGPU',useGPU,'precision',precision);
 
 % setup loss function for training and validation set

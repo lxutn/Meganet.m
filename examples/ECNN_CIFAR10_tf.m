@@ -66,6 +66,7 @@ W      = 1e-3*vec(randn(10,prod(sizeFeatOut(net))+1));
 % setup optimization
 opt = sgd();
 opt.learningRate = @(epoch) 1e-3/sqrt(epoch);
+%opt.maxEpochs = 20;
 opt.maxEpochs = 20;
 opt.nesterov = false;
 opt.ADAM=true;

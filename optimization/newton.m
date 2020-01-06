@@ -84,10 +84,15 @@ classdef newton < optimizer
             % minimizes fctn starting with xc. (optional) fval is printed
             if not(exist('fval','var')); fval = []; end;
             
-            [str,frmt] = hisNames(this);
+            [str,frmt] = hisNames(this); % display text
             numNames = length(str);
             
-            % parse objective functions
+            % parse objective functions, which is a dnnVarProObjFctn or a classObjFctn. The
+            % goal is to call the function specified by the object fctn as
+            % fctn(xc)
+            % parseObjFctn just returns function handles for evaluation and
+            % printing
+            % The method eval is defined in the object dnnVarProObjFctn
             [fctn,objFctn,objNames,objFrmt,objHis]     = parseObjFctn(this,fctn);
             str = [str,objNames{:}]; frmt = [frmt,objFrmt{:}];
             [fval,obj2Fctn,obj2Names,obj2Frmt,obj2His] = parseObjFctn(this,fval);
@@ -95,14 +100,27 @@ classdef newton < optimizer
             doVal     = not(isempty(obj2Fctn));
             
             % evaluate training and validation
+            % compute the gradients and the Hessian
+            % Jc: cost 1/s*S(h(W*Y+\mu),C)+\alpha * R(W,mu,K...,B...) 
+            % (see (2.3) in ruthotto's paper) 
+            
+            % dJ= gradient of Jc w.r.t the classification weights [vec(W);mu] 
+            
+            % d2J: hessian of Jc w.r.t the classification weights [vec(W);mu]
             [Jc,para,dJ,d2J,PC] = fctn(xc); pVal = [];
             if doVal
                 if isa(objFctn,'dnnVarProBatchObjFctn') || isa(objFctn,'dnnVarProObjFctn')
+                    %[Fval,pVal] = fval([xc; para.infeasi(:)]);
                     [Fval,pVal] = fval([xc; para.W(:)]);
                 else
                     [Fval,pVal] = fval(xc);
                 end
             end
+            
+            %%
+            % PRINT DETAILS OF ITERATIONS
+            % if the output is set to verbose print the summary of newton
+            % parameters
             
             if this.out>0
                 fprintf('== newton (n=%d,maxIter=%d,maxStep=%1.1e) ===\n',...
@@ -110,7 +128,12 @@ classdef newton < optimizer
                 fprintf([repmat('%-12s',1,numel(str)) '\n'],str{:});
             end
             
+            %% Start with the newton's iterations
+            
+            % his is a storeplace for the output of each iteration (fnct
+            % value, magnitude of the step etc ...
             his = zeros(1,numel(str));
+            
             nrm0 = norm(dJ(:));
             iter = 1;
             xOld = xc;
@@ -121,17 +144,28 @@ classdef newton < optimizer
                 if this.out>0
                     fprintf([frmt{1:4}], his(iter,1:4));
                 end
+                
+                % TERMINATION condition
                 if (norm(dJ(:))/nrm0 < this.rtol) || (norm(dJ(:))< this.atol), break; end
                 
-                % solve the linear system
+                % SOLVE the linear system
                 % [s,~,relresCG,iterCG,resvec] = solve(this.linSol,d2J,-dJ(:),[],PC);
+                % call the method solve of the object this.linSol. For
+                % instance this is a steihaugPCG object
+                % s is the solution
                 [s,linSolPara] = solve(this.linSol,d2J,-dJ(:),[],PC);
+                
+                % "his" is the variable storing data about iterations of
+                % the optimization method. hisVals extract his from the
+                % object linSolPara
                 linSolVals = hisVals(this.linSol,linSolPara);
                 
+                % if s=0 exit
                 if norm(s) == 0, s = -dJ(:)/norm(dJ(:)); end
                 clear d2J
 				clear PC
 
+                % PRINT iteration stuff on the command window
                 % his(iter,5:6) = [iterCG, relresCG];
                 numPrintOuts = length(linSolVals);
                 hisStart = hisEnd+1;
@@ -147,8 +181,12 @@ classdef newton < optimizer
                 if max(abs(s(:))) > this.maxStep
                     s = s/max(abs(s(:))) * this.maxStep; 
                 end
-                % line search
+                % LINE SEARCH: select the scalinh mu
+                % set mu=1 in the first iteration
                 if iter == 1; mu = 1.0; end
+                
+                % call the method lineSearch of the object this.LS
+                % for instance, this can be an object of type Armijo
                 [xt,mu,lsIter] = lineSearch(this.LS,fctn,xc,mu,s,Jc,dJ);
                 if (lsIter > this.LS.maxIter)
                     disp('LSB in newton'); %keyboard
@@ -156,7 +194,8 @@ classdef newton < optimizer
                     break;
                 end
                 
-                
+                %%% PRINT ADDITIONAL info about the current iteration on
+                %%% the screen
                 hisStart = hisEnd+1;
                 hisEnd = hisEnd+2;
                 his(iter,hisStart:hisEnd) = [mu lsIter];
@@ -187,6 +226,8 @@ classdef newton < optimizer
                 if this.out>0
                     fprintf('\n');
                 end
+                %%% INCREMENT the iteration counter and start a new Newton
+                %%% step
                 iter = iter + 1;
             end
             His = struct('str',{str},'frmt',{frmt},'his',his(1:min(iter,this.maxIter),:));
