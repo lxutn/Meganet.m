@@ -105,7 +105,7 @@ classdef dnnVarProObjFctn < objFctn
             % given the output data YN, the class of each datapoint C and the current theta
             W     = solve(this.optClass,fctn,zeros(size(C,1)*(size(YN,1)+this.pLoss.addBias),1,'like',theta));
             % compute dYF=dF/dY and d2YF=d2 F/d Y2
-            [F,hisLoss,~,~,dYF,d2YF] = getMisfit(this.pLoss,W,YN,C);
+            [F,hisLoss,~,~,dYF,d2YF] = getMisfit(this.pLoss,W,YN,C); 
             dYF = reshape(dYF,szYN);
             if compGrad
                 % compute dJ= d J/d theta

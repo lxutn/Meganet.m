@@ -126,6 +126,7 @@ classdef ResNN < abstractMeganetElement
         end
         
         function [dtheta,W] = JTmv(this,W,theta,Y,tmp,doDerivative)
+            % W=dYF
             if not(exist('doDerivative','var')) || isempty(doDerivative)
                doDerivative =[1;0]; 
             end

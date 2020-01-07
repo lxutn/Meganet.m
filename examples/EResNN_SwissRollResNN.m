@@ -36,12 +36,13 @@ axis equal tight
 title('input features');
 %% setup network
 T = 20;
-nt = 2^minLevel;
-h  = T/nt;
+nt = 2^minLevel; % number of layers
+h  = T/nt; 
 nf = size(Ytrain,1);
 
 K     = dense([nf,nf]);
-layer = singleLayer(K,'Bin',ones(nf,1));
+layer = singleLayer(K,'Bin',ones(nf,1)); % homogeneous layers, each layers with parameter K, b 
+                                        % what does the "Bin" mean?
 net   = ResNN(layer,nt,h);
 
 %% setup classifier

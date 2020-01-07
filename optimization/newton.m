@@ -10,7 +10,7 @@ classdef newton < optimizer
     %
     % where 
     %   Jc   - function value gradient 
-    %   para - struct containing information about the objective used for
+    %   para - struct containing information about the objectcive used for
     %          plotting or printing (see, e.g., method hisVals in objFctn)
     %   dJ   - gradient about xc
     %   H    - Hessian approximation
@@ -101,12 +101,11 @@ classdef newton < optimizer
             
             % evaluate training and validation
             % compute the gradients and the Hessian
-            % Jc: cost 1/s*S(h(W*Y+\mu),C)+\alpha * R(W,mu,K...,B...) 
-            % (see (2.3) in ruthotto's paper) 
+            % Jc: cost of L (total cost in (2.4) of stable DNN paper) when W is elimited, i.e., Jc=min_W L(W, K)
             
-            % dJ= gradient of Jc w.r.t the classification weights [vec(W);mu] 
+            % dJ= gradient of Jc w.r.t the neural weights K 
             
-            % d2J: hessian of Jc w.r.t the classification weights [vec(W);mu]
+            % d2J: hessian of Jc w.r.t the neural weights K
             [Jc,para,dJ,d2J,PC] = fctn(xc); pVal = [];
             if doVal
                 if isa(objFctn,'dnnVarProBatchObjFctn') || isa(objFctn,'dnnVarProObjFctn')
@@ -153,6 +152,10 @@ classdef newton < optimizer
                 % call the method solve of the object this.linSol. For
                 % instance this is a steihaugPCG object
                 % s is the solution
+                
+                % liang: use conjugate gradient method to solve linear
+                % equations to obtain newton Direction, here $s$ represents
+                % the newton Direction
                 [s,linSolPara] = solve(this.linSol,d2J,-dJ(:),[],PC);
                 
                 % "his" is the variable storing data about iterations of
@@ -187,6 +190,9 @@ classdef newton < optimizer
                 
                 % call the method lineSearch of the object this.LS
                 % for instance, this can be an object of type Armijo
+                
+                % liang: use this step to find the optimal stepsize for
+                % Newton optimization method on direction $s$
                 [xt,mu,lsIter] = lineSearch(this.LS,fctn,xc,mu,s,Jc,dJ);
                 if (lsIter > this.LS.maxIter)
                     disp('LSB in newton'); %keyboard
