@@ -27,7 +27,7 @@ Ctrain = Ctrain(1,:);
 Cv     = Cv(1,:);
 
 minLevel = 4;
-maxLevel = 10;
+maxLevel = 6;
 
 figure(1); clf;
 subplot(2,10,1);
@@ -100,6 +100,21 @@ for level=minLevel:maxLevel
     axis equal tight
     title('classification results')
     drawnow
+    
+    % calculate the accuracy rate on train data
+    fprintf('\n')
+    [Yn,tmp] = forwardProp(net,theta,Ytrain);
+    [Cp,Pp] = getLabels(pLoss,reshape(WOpt,1,[]),Yn); % cp is the label, Pp is the probaility
+    fprintf('accuracy rate on train set is: %0.5f',sum(Cp==Ctrain)/length(Cp))
+    
+    % calculate the accuracy rate on test data
+    fprintf('\n')
+    [Yn,tmp] = forwardProp(net,theta,Yv);
+    [Cp,Pp] = getLabels(pLoss,reshape(WOpt,1,[]),Yn); % cp is the label, Pp is the probaility
+    
+    fprintf('accuracy rate on test set is: %0.5f',sum(Cp==Cv)/length(Cp))
+    
+    
     
     if level<maxLevel
         % prolongate weights to the next level
